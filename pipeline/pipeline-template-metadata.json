@@ -1,0 +1,26 @@
+{
+  "name": "JDBC -> GCS Extraction Pipeline",
+  "description": "Reads data from the tables specified in the list, reads the extraction metadata stored in GCS and runs queries to extract the data",
+  "parameters": [
+    {
+      "name": "tables",
+      "label": "List of tables to process",
+      "helpText": "Comma delimited list of tables"
+    },
+    {
+      "name": "databaseConnectionURLSecretId",
+      "label": "GCP Secret Manager Secret ID",
+      "helpText": "projects/69983859395/secrets/sap-db-url/versions/2"
+    },
+    {
+      "name": "GCSTableMetadataBucket",
+      "label": "Bucket name containing the metadata about tables.",
+      "helpText": "Just the bucket name, no gs:// prefix"
+    },
+    {
+      "name": "outputFolder",
+      "label": "GCS folder location",
+      "helpText": "gs://mybucket/output"
+    }
+  ]
+}
