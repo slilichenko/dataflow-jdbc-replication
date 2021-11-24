@@ -1,5 +1,5 @@
-resource "google_secret_manager_secret" "sap-db-url" {
-  secret_id = "sap-db-url"
+resource "google_secret_manager_secret" "jdbc-url" {
+  secret_id = "jdbc-url"
 
   replication {
     automatic = true
@@ -7,18 +7,23 @@ resource "google_secret_manager_secret" "sap-db-url" {
   depends_on = [google_project_service.secret-manager-api]
 }
 
-resource "google_secret_manager_secret_version" "version" {
-  secret = google_secret_manager_secret.sap-db-url.id
+resource "google_secret_manager_secret_version" "current-jdbc-url" {
+  secret = google_secret_manager_secret.jdbc-url.id
 
-  secret_data = var.db_url
+  # Details: https://github.com/GoogleCloudPlatform/cloud-sql-jdbc-socket-factory/blob/main/docs/jdbc-postgres.md
+  secret_data = format("jdbc:postgresql:///%s?cloudSqlInstance=%s&socketFactory=com.google.cloud.sql.postgres.SocketFactory&user=%s&password=%s",
+  google_sql_database.data.name,
+  google_sql_database_instance.main.name,
+  google_sql_user.data-reader.name,
+  google_sql_user.data-reader.password )
 }
 
 resource "google_secret_manager_secret_iam_member" "member" {
-  secret_id = google_secret_manager_secret.sap-db-url.secret_id
-  role = "roles/secretmanager.secretAccessor"
-  member = "serviceAccount:${google_service_account.dataflow-worker-sa.email}"
+  secret_id = google_secret_manager_secret.jdbc-url.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.dataflow-worker-sa.email}"
 }
 
-output "database-url-secret-id" {
-  value = google_secret_manager_secret_version.version.name
+output "jdbc-url-secret-id" {
+  value = google_secret_manager_secret_version.current-jdbc-url.name
 }

@@ -1,18 +1,31 @@
 # Dataflow JDBC Synchronization
 
 ## Overview
-This project has a Beam pipeline which will copy data extracted from a JDBC data source.
+This project has a Beam pipeline which will copy data extracted from a JDBC 
+data source into a set of BigQuery tables. It uses SAP as the source database, 
+but can support any data source which has a JDBC driver.
 
 ## Setup
-The setup process uses Terraform to create the environment.
+The setup process uses Terraform to create the environment. 
+It uses [Secret Manager](https://cloud.google.com/secret-manager/docs) 
+to secure JDBC username and password.
 
-* Set up required environment variables:
-    * PROJECT_ID which contains Google Cloud project id
-    * TF_VAR_db_url in 
-     `jdbc:sap://<host>:<port>/?databaseName=<DBNAME>&user=YYY&password=ZZZ` format
-* `cd pipeline`
-* `source ./setup-env.sh`
-* `./stage-dataflow-template.sh`
+* Create a file with the password for the account which will be used by the piple to read the database, `data_reader.pass`
+* Create a file with the password for the `postgres` admin user, `postres.pass`
+
+In production environments use randomly generated passwords. One option is to use the `openssl` tool:
+```bash
+openssl rand -hex 20 > data_reader.pass &&  chmod g-r,o-r data_reader.pass
+openssl rand -hex 20 > postgres.pass &&  chmod g-r,o-r postgres.pass
+```
+To run this tutorial you can put manually edit the password files; just make sure they don't have any extra lines and the passwords don't contain any spaces.
+* Set up environment variables, create the environment and stage the pipeline:
+  * `export PROJECT_ID=<Id of the Google Cloud Platform's project to deploy all artifacts>`
+  * `export TF_VAR_data_reader_password=$(cat data_reader.pass)`
+  * `export TF_VAR_postgres_password=$(cat postgres.pass)`
+  * `source ./setup-env.sh`
+  * `cd pipeline`
+  * `./stage-dataflow-template.sh`
  
 ## Create Table Extract Metadata File(s)
 After `setup-env.sh` script is run it creates several GCS buckets. One of the buckets 
