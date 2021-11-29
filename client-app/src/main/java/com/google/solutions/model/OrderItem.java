@@ -17,42 +17,56 @@
 package com.google.solutions.model;
 
 import java.util.Date;
+import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "customers")
-public class Customer extends Timestamped {
+@Table(name = "order_items")
+public class OrderItem extends Timestamped {
 
   @Id
-  @Column(name = "customer_id")
+  @Column(name = "order_item_id")
   private String id;
-  private String firstName;
-  private String lastName;
 
+  private String sku;
 
-  protected Customer() {
-  //  For JPA's use
+  private int quantity;
+
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "order_id", nullable = false, updatable = false)
+  private Order order;
+
+  public OrderItem() {
+    //  For JPA's use
   }
 
-  public Customer(String id, String firstName, String lastName) {
-    this.id = id;
-    this.firstName = firstName;
-    this.lastName = lastName;
+  public OrderItem(Order order, int quantity, String sku) {
+    this.order = order;
+    this.id = UUID.randomUUID().toString();
+    this.quantity = quantity;
+    this.sku = sku;
   }
 
   public String getId() {
     return id;
   }
 
-  public String getFirstName() {
-    return firstName;
+  public String getSku() {
+    return sku;
   }
 
-  public String getLastName() {
-    return lastName;
+  public int getQuantity() {
+    return quantity;
+  }
+
+  public Order getOrder() {
+    return order;
   }
 
   @Override
@@ -64,13 +78,13 @@ public class Customer extends Timestamped {
       return false;
     }
 
-    Customer customer = (Customer) o;
+    OrderItem orderItem = (OrderItem) o;
 
-    return id != null ? id.equals(customer.id) : customer.id == null;
+    return id.equals(orderItem.id);
   }
 
   @Override
   public int hashCode() {
-    return id != null ? id.hashCode() : 0;
+    return id.hashCode();
   }
 }

@@ -17,42 +17,57 @@
 package com.google.solutions.model;
 
 import java.util.Date;
+import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "customers")
-public class Customer extends Timestamped {
+@Table(name = "orders")
+public class Order extends Timestamped {
+
+  public enum Status {open, fulfilled, cancelled}
 
   @Id
-  @Column(name = "customer_id")
+  @Column(name = "order_id")
   private String id;
-  private String firstName;
-  private String lastName;
 
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "customer_id", nullable = false, updatable = false)
+  private Customer customer;
 
-  protected Customer() {
-  //  For JPA's use
-  }
-
-  public Customer(String id, String firstName, String lastName) {
-    this.id = id;
-    this.firstName = firstName;
-    this.lastName = lastName;
-  }
+  @Enumerated(value = EnumType.STRING)
+  private Status status;
 
   public String getId() {
     return id;
   }
 
-  public String getFirstName() {
-    return firstName;
+  public Customer getCustomer() {
+    return customer;
   }
 
-  public String getLastName() {
-    return lastName;
+  public Status getStatus() {
+    return status;
+  }
+
+  public void setStatus(Status status) {
+    this.status = status;
+  }
+
+  protected Order() {
+    //  For JPA's use
+  }
+
+  public Order(Customer customer) {
+    this.customer = customer;
+    this.status = Status.open;
+    this.id = UUID.randomUUID().toString();
   }
 
   @Override
@@ -64,13 +79,13 @@ public class Customer extends Timestamped {
       return false;
     }
 
-    Customer customer = (Customer) o;
+    Order order = (Order) o;
 
-    return id != null ? id.equals(customer.id) : customer.id == null;
+    return id.equals(order.id);
   }
 
   @Override
   public int hashCode() {
-    return id != null ? id.hashCode() : 0;
+    return id.hashCode();
   }
 }
