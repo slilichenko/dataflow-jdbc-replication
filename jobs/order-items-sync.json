@@ -1,0 +1,4 @@
+{
+  "lastSync": 0.0,
+  "query": "select * from order_items where updated_ts between ? and ?"
+}

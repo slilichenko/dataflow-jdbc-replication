@@ -34,9 +34,9 @@ import org.junit.Before;
 
 abstract public class BaseDataPersistentTest {
 
-  public static final String SAP_EMULATOR = "sap_emulator";
+  public static final String SCHEMA_NAME = "test_schema";
   public static final String JDBC_CONNECTION_URL = "jdbc:h2:mem:"
-      + SAP_EMULATOR
+      + SCHEMA_NAME
       + ";DB_CLOSE_DELAY=-1";
   protected final String tableName = "table1";
   protected final JdbcIO.DataSourceConfiguration dataSourceConfiguration = DataSourceConfiguration

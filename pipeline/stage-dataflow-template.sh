@@ -25,7 +25,7 @@ export TEMPLATE_PATH="gs://${METADATA_BUCKET}/jdbc-extract-template.json"
 
 echo "Deploying dataflow template to: ${TEMPLATE_IMAGE}"
 
-JAR_LIST="--jar target/jdbc-pipeline-1.0-SNAPSHOT.jar"
+JAR_LIST="--jar target/jdbc-sync-pipeline-1.0-SNAPSHOT.jar"
 for d in target/dependencies/* ;
 do
   JAR_LIST="${JAR_LIST} --jar $d"

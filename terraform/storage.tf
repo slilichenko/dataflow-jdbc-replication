@@ -6,6 +6,13 @@ resource "google_storage_bucket" "job_metadata" {
   uniform_bucket_level_access = true
 }
 
+resource "google_storage_bucket_object" "sync-job-definitions" {
+  for_each = fileset("../jobs", "*.json")
+  bucket = google_storage_bucket.job_metadata.name
+  source = "../jobs/${each.value}"
+  name = each.value
+}
+
 resource "google_storage_bucket_iam_member" "dataflow-worker-job-metadata-admin-role" {
   bucket = google_storage_bucket.job_metadata.name
   role    = "roles/storage.admin"

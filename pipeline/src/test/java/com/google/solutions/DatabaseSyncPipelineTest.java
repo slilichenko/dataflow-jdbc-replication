@@ -16,7 +16,7 @@
 package com.google.solutions;
 
 import com.google.solutions.DatabaseSyncPipeline.PipelineOutput;
-import com.google.solutions.model.TableSyncMetadata;
+import com.google.solutions.model.SyncJob;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -39,9 +39,8 @@ public class DatabaseSyncPipelineTest extends BaseDataPersistentTest {
 
   private final Schema tableSchema = Schema.of(
       Field.of("a", FieldType.INT32),
-      Field.of("b", FieldType.STRING)
-// TODO: fix the bug with Row's timestamp.
-//      , Field.of("ts", FieldType.DATETIME)
+      Field.of("b", FieldType.STRING),
+      Field.of("ts", FieldType.DATETIME)
   );
 
   @Rule
@@ -50,7 +49,7 @@ public class DatabaseSyncPipelineTest extends BaseDataPersistentTest {
   @Test
   @Category(ValidatesRunner.class)
   public void noDataIfNoUpdates() {
-    Collection<TableSyncMetadata> syncInfo = Collections.singleton(tableSyncMetadata(60));
+    Collection<SyncJob> syncInfo = Collections.singleton(tableSyncMetadata(60));
 
     PipelineOutput result = DatabaseSyncPipeline
         .readRecords(p, dataSourceConfiguration, syncInfo);
@@ -80,12 +79,12 @@ public class DatabaseSyncPipelineTest extends BaseDataPersistentTest {
     Row expectedUpdated = Row.withSchema(tableSchema)
         .withFieldValue("a", key)
         .withFieldValue("b", newValue)
-//        .withFieldValue("ts", toSchemaDatetime(updateTimestamp))
+        .withFieldValue("ts", toSchemaDatetime(updateTimestamp))
         .build();
     Row expectedInserted = Row.withSchema(tableSchema)
         .withFieldValue("a", newRecord.a)
         .withFieldValue("b", newRecord.b)
-//        .withFieldValue("ts", toSchemaDatetime(newRecord.ts))
+        .withFieldValue("ts", toSchemaDatetime(newRecord.ts))
         .build();
 
     PAssert.that(result.records.values().iterator().next())
@@ -94,11 +93,11 @@ public class DatabaseSyncPipelineTest extends BaseDataPersistentTest {
     p.run().waitUntilFinish();
   }
 
-  private TableSyncMetadata tableSyncMetadata(int minutesBack) {
-    return new TableSyncMetadata(
+  private SyncJob tableSyncMetadata(int minutesBack) {
+    return new SyncJob(
         tableName,
         Instant.now().minus(Duration.ofMinutes(minutesBack)),
-        "select a, b from " + tableName + " where ts between ? and ?");
+        "select a, b, ts from " + tableName + " where ts between ? and ?");
   }
 
 }

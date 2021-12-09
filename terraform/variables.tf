@@ -6,6 +6,10 @@ variable "region" {
   default = "us-central1"
 }
 
+output "region" {
+  value = var.region
+}
+
 variable "data_reader_password" {
   type      = string
   sensitive = true

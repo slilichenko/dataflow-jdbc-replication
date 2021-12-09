@@ -13,7 +13,7 @@ resource "google_secret_manager_secret_version" "current-jdbc-url" {
   # Details: https://github.com/GoogleCloudPlatform/cloud-sql-jdbc-socket-factory/blob/main/docs/jdbc-postgres.md
   secret_data = format("jdbc:postgresql:///%s?cloudSqlInstance=%s&socketFactory=com.google.cloud.sql.postgres.SocketFactory&user=%s&password=%s",
   google_sql_database.data.name,
-  google_sql_database_instance.main.name,
+  google_sql_database_instance.main.connection_name,
   google_sql_user.data-reader.name,
   google_sql_user.data-reader.password )
 }

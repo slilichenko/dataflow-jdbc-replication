@@ -22,15 +22,23 @@ import java.io.IOException;
 import java.time.Instant;
 import org.junit.Test;
 
-public class TableSyncMetadataTest {
+public class SyncJobTest {
 
   @Test
   public void testSerializationToJson() throws IOException {
-    TableSyncMetadata data = new TableSyncMetadata("table", Instant.now(), "Select 1");
+    SyncJob data = new SyncJob("jobName", Instant.now(), "Select 1");
     byte[] serialized = data.toJsonBytes();
 
-    TableSyncMetadata deserialized = TableSyncMetadata.fromJsonBytes(serialized);
+    SyncJob deserialized = SyncJob.fromJsonBytes("jobName", serialized);
     assertEquals("Original and deserialized are equal", data, deserialized);
+    assertEquals("Names match", "jobName", deserialized.getName());
   }
 
+  @Test
+  public void testGetOutputFileNamePrefix() {
+    SyncJob previous = new SyncJob("test", Instant.ofEpochSecond(0), "Select 1");
+    SyncJob next = previous.nextSyncPoint(Instant.ofEpochSecond(1638986912));
+
+    assertEquals("test_19700101-000000_20211208-180832", next.getOutputFileNamePrefix());
+  }
 }

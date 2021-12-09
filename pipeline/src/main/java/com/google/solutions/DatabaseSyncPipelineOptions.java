@@ -17,17 +17,25 @@
 package com.google.solutions;
 
 import java.util.List;
-import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
+import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
+import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.Validation.Required;
 
-public interface DatabaseSyncPipelineOptions extends DataflowPipelineOptions {
+public interface DatabaseSyncPipelineOptions extends PipelineOptions {
 
-  @Description("List of tables to update")
+  @Description("Fully qualified JDBC driver class name")
   @Required
-  List<String> getTables();
+  @Default.String("org.postgresql.Driver")
+  String getJDBCDriverClassName();
 
-  void setTables(List<String> value);
+  void setJDBCDriverClassName(String value);
+
+  @Description("List of sync jobs to run")
+  @Required
+  List<String> getJobNames();
+
+  void setJobNames(List<String> value);
 
   @Description("Database Connection URL secret id.")
   @Required

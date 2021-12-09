@@ -16,10 +16,10 @@
 
 CREATE TABLE customers
 (
-    customer_id varchar(36) NOT NULL PRIMARY KEY,
-    first_name  varchar(30) NOT NULL,
-    last_name   varchar(30) NOT NULL,
-    updated_ts  timestamp   NOT NULL
+    customer_id varchar(36)              NOT NULL PRIMARY KEY,
+    first_name  varchar(30)              NOT NULL,
+    last_name   varchar(30)              NOT NULL,
+    updated_ts  timestamp with time zone NOT NULL
 );
 CREATE
 INDEX customers_updated ON customers  (updated_ts);
@@ -27,9 +27,9 @@ INDEX customers_updated ON customers  (updated_ts);
 CREATE TABLE orders
 (
     order_id    varchar(36) PRIMARY KEY,
-    customer_id varchar(36) NOT NULL,
-    status      varchar(12) NOT NULL,
-    updated_ts  timestamp   NOT NULL,
+    customer_id varchar(36)              NOT NULL,
+    status      varchar(12)              NOT NULL,
+    updated_ts  timestamp with time zone NOT NULL,
     CONSTRAINT fk_order_customer
         FOREIGN KEY (customer_id)
             REFERENCES customers (customer_id)
@@ -40,13 +40,15 @@ INDEX orders_updated ON orders  (updated_ts);
 CREATE TABLE order_items
 (
     order_item_id varchar(36) PRIMARY KEY,
-    order_id      varchar(36) NOT NULL,
-    quantity      int         NOT NULL,
-    sku           varchar(12) NOT NULL,
-    updated_ts    timestamp   NOT NULL,
+    order_id      varchar(36)              NOT NULL,
+    quantity      int                      NOT NULL,
+    sku           varchar(12)              NOT NULL,
+    updated_ts    timestamp with time zone NOT NULL,
     CONSTRAINT fk_order_item_order
         FOREIGN KEY (order_id)
             REFERENCES orders (order_id)
 );
 CREATE
 INDEX order_items_updated ON order_items  (updated_ts);
+
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO "data-reader";

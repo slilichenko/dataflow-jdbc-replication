@@ -17,8 +17,6 @@
 
 set -u
 
-export REGION=us-east1
-
 TEMPLATE_PATH="gs://${METADATA_BUCKET}/jdbc-extract-template.json"
 
 set +u
@@ -32,9 +30,9 @@ if [[ ! -z "${DF_SUBNETWORK}" ]]; then
 fi
 set -u
 
-TABLES_PARAM_FILE=tables.yaml
-echo "--parameters:" > ${TABLES_PARAM_FILE}
-echo "  tables: ${TABLE_LIST}" >> ${TABLES_PARAM_FILE}
+JOBS_PARAM_FILE=jobs.yaml
+echo "--parameters:" > ${JOBS_PARAM_FILE}
+echo "  jobNames: ${JOB_LIST}" >> ${JOBS_PARAM_FILE}
 
 JOB_ID="jdbc-export-`date +%Y%m%d-%H%M%S`"
 set -x
@@ -44,12 +42,12 @@ gcloud dataflow flex-template run ${JOB_ID} \
     --service-account-email ${DATAFLOW_WORKER_SA} \
     --staging-location gs://${DF_TEMP_BUCKET}/tmp \
     ${EXTRA_OPTIONS}  \
-    --flags-file ${TABLES_PARAM_FILE} \
+    --flags-file ${JOBS_PARAM_FILE} \
     --parameters GCSTableMetadataBucket=${METADATA_BUCKET} \
     --parameters outputFolder=gs://${OUTPUT_BUCKET} \
     --parameters "databaseConnectionURLSecretId=${DB_URL_SECRET_ID}"
 set +x
 
-rm ${TABLES_PARAM_FILE}
+rm ${JOBS_PARAM_FILE}
 
 

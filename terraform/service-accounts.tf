@@ -16,6 +16,14 @@ resource "google_project_iam_member" "dataflow-worker-storage-object-viewer" {
   member = "serviceAccount:${google_service_account.dataflow-worker-sa.email}"
 }
 
+// Required to access container registry
+resource "google_project_iam_member" "dataflow-worker-sql-client" {
+  project = var.project_id
+  role = "roles/cloudsql.client"
+  member = "serviceAccount:${google_service_account.dataflow-worker-sa.email}"
+}
+
+
 output "dataflow-worker-sa" {
   value = google_service_account.dataflow-worker-sa.email
 }

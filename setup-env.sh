@@ -30,6 +30,7 @@ export DF_TEMP_BUCKET=$(terraform output -raw df-temp-bucket)
 export PSQL_INSTANCE=$(terraform output -raw postgresql_instance)
 export PSQL_DATABASE=$(terraform output -raw postgresql_database)
 export PSQL_CONNECTION=$(terraform output -raw postgresql_connection_name)
+export REGION=$(terraform output -raw region)
 
 # This step will create the PostgreSQL schema and tables.
 cd ../client-app
