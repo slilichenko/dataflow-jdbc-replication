@@ -47,9 +47,9 @@
 
 	<dependencies>
 		<dependency>
-			// TODO: emergency fix. Needs to be removed once Spring Boot
-			// library is upgraded and it's verified that it doesn't have dependency
-			// on Log4j < 2.15
+<!-- TODO: emergency fix. Needs to be removed once Spring Boot -->
+<!-- library is upgraded and it's verified that it doesn't have dependency -->
+<!-- on Log4j < 2.15 -->
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
 			<version>2.15.0</version>
