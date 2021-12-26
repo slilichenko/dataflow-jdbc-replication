@@ -9,3 +9,7 @@ resource "google_project_service" "dataflow-api" {
 resource "google_project_service" "cloud-build-api" {
   service = "cloudbuild.googleapis.com"
 }
+
+resource "google_project_service" "artifact-registry-api" {
+  service = "artifactregistry.googleapis.com"
+}

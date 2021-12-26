@@ -25,14 +25,14 @@ resource "google_sql_user" "postgres" {
   password = var.postgres_password
 }
 
-output "postgresql_instance" {
+output "postgresql-instance" {
   value = google_sql_database_instance.main.name
 }
 
-output "postgresql_database" {
+output "postgresql-database" {
   value = google_sql_database.data.name
 }
 
-output "postgresql_connection_name" {
+output "postgresql-connection-name" {
   value = google_sql_database_instance.main.connection_name
 }
