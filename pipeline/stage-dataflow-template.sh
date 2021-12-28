@@ -20,15 +20,17 @@ set -u
 
 mvn clean package
 
-BUIID_TAG=$(date +"%Y-%m-%d_%H-%M-%S")
-PIPELINE_NAME="jdbc-extract"
+BUILD_TAG=$(date +"%Y-%m-%d_%H-%M-%S")
+PIPELINE_NAME="jdbc-sync"
+
+BASE_IMAGE_TAG=20210419_RC00
 
 # If Container Registry is used - this is format
-# export TEMPLATE_IMAGE="gcr.io/${PROJECT_ID}/dataflow-flex-templates/${PIPELINE_NAME}:${BUIID_TAG}"
+# export TEMPLATE_IMAGE="gcr.io/${PROJECT_ID}/dataflow-flex-templates/${PIPELINE_NAME}:${BUILD_TAG}"
 
 # This is the path for Artifact Registry
-export TEMPLATE_IMAGE="${REPO_LOCATION}-docker.pkg.dev/${REPO_PROJECT_ID}/${REPO_NAME}/${PIPELINE_NAME}:${BUIID_TAG}"
-export TEMPLATE_PATH="gs://${METADATA_BUCKET}/jdbc-extract-template.json"
+export TEMPLATE_IMAGE="${REPO_LOCATION}-docker.pkg.dev/${REPO_PROJECT_ID}/${REPO_NAME}/${PIPELINE_NAME}:${BUILD_TAG}"
+export TEMPLATE_PATH="gs://${METADATA_BUCKET}/jdbc-extract-template-${BUILD_TAG}.json"
 
 echo "Deploying dataflow template to: ${TEMPLATE_IMAGE}"
 
@@ -41,7 +43,10 @@ done
 gcloud dataflow flex-template build ${TEMPLATE_PATH} \
   --image-gcr-path "${TEMPLATE_IMAGE}" \
   --sdk-language "JAVA" \
-  --flex-template-base-image gcr.io/dataflow-templates-base/java11-template-launcher-base:20210419_RC00 \
+  --flex-template-base-image gcr.io/dataflow-templates-base/java11-template-launcher-base:${BASE_IMAGE_TAG} \
   --metadata-file "pipeline-template-metadata.json" \
+  --max-workers 3 \
+  --additional-user-labels template-name=${PIPELINE_NAME},template-version=${BUILD_TAG} \
+  --additional-experiments enable_recommendations \
   ${JAR_LIST} \
   --env FLEX_TEMPLATE_JAVA_MAIN_CLASS="com.google.solutions.DatabaseSyncPipeline" 

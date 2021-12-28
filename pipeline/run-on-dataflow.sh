@@ -17,7 +17,7 @@
 
 set -u
 
-TEMPLATE_PATH="gs://${METADATA_BUCKET}/jdbc-extract-template.json"
+TEMPLATE_PATH=$1
 
 set +u
 EXTRA_OPTIONS=""
