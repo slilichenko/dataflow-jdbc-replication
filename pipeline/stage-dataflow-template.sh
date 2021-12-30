@@ -32,21 +32,27 @@ BASE_IMAGE_TAG=20210419_RC00
 export TEMPLATE_IMAGE="${REPO_LOCATION}-docker.pkg.dev/${REPO_PROJECT_ID}/${REPO_NAME}/${PIPELINE_NAME}:${BUILD_TAG}"
 export TEMPLATE_PATH="gs://${METADATA_BUCKET}/jdbc-extract-template-${BUILD_TAG}.json"
 
-echo "Deploying dataflow template to: ${TEMPLATE_IMAGE}"
+echo "Deploying ${PIPELINE_NAME} pipeline template to: ${TEMPLATE_IMAGE}"
 
+# This name is defined by Maven's pom.xml and default location of the target goal
 JAR_LIST="--jar target/jdbc-sync-pipeline-1.0-SNAPSHOT.jar"
+
+# The dependencies are copied to this folder by Maven's maven-dependency-plugin during "package" build phase
 for d in target/dependencies/* ;
 do
   JAR_LIST="${JAR_LIST} --jar $d"
 done
 
+MAX_WORKERS=3
+
 gcloud dataflow flex-template build ${TEMPLATE_PATH} \
   --image-gcr-path "${TEMPLATE_IMAGE}" \
   --sdk-language "JAVA" \
   --flex-template-base-image gcr.io/dataflow-templates-base/java11-template-launcher-base:${BASE_IMAGE_TAG} \
-  --metadata-file "pipeline-template-metadata.json" \
-  --max-workers 3 \
+  --metadata-file "./pipeline-template-metadata.json" \
+  --max-workers ${MAX_WORKERS} \
   --additional-user-labels template-name=${PIPELINE_NAME},template-version=${BUILD_TAG} \
   --additional-experiments enable_recommendations \
   ${JAR_LIST} \
-  --env FLEX_TEMPLATE_JAVA_MAIN_CLASS="com.google.solutions.DatabaseSyncPipeline" 
+  --env FLEX_TEMPLATE_JAVA_MAIN_CLASS="com.google.solutions.DatabaseSyncPipeline" \
+  --env FLEX_TEMPLATE_JAVA_OPTIONS="-Xmx1G"

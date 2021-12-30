@@ -145,7 +145,7 @@ public class DatabaseSyncPipeline {
 
           Counter counter = Metrics
               .counter("table-row-retriever", "record-counter-" + syncJob.getName());
-          PCollection<Row> rows = p.apply("Run " + syncJob.getName(),
+          PCollection<Row> rows = p.apply("Query " + syncJob.getName(),
               JdbcIO.readRows()
                   .withQuery(syncJob.getQuery())
                   .withStatementPreparator((StatementPreparator) ps -> {
@@ -155,7 +155,7 @@ public class DatabaseSyncPipeline {
                   .withOutputParallelization(false)
                   .withDataSourceConfiguration(dataSourceConfiguration));
 
-          rows.apply("Capture Metrics " + syncJob.getName(), MapElements.into(TypeDescriptors.voids()).via(
+          rows.apply("Get Metrics " + syncJob.getName(), MapElements.into(TypeDescriptors.voids()).via(
               row -> {
                 counter.inc();
                 return null;
@@ -194,13 +194,13 @@ public class DatabaseSyncPipeline {
           org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(result.schemas.get(syncInfo));
 
           WriteFilesResult<Void> writeFilesResult = rows
-              .apply("To GenericRecord", ParDo.of(new DoFn<Row, GenericRecord>() {
+              .apply("To GenericRecord " + syncInfo.getName(), ParDo.of(new DoFn<Row, GenericRecord>() {
                 @ProcessElement
                 public void process(@Element Row row, OutputReceiver<GenericRecord> out) {
                   out.output(AvroUtils.toGenericRecord(row));
                 }
               })).setCoder(AvroCoder.of(avroSchema))
-              .apply("Persist to GCS", AvroIO.writeGenericRecords(avroSchema)
+              .apply("Persist to GCS " + syncInfo.getName(), AvroIO.writeGenericRecords(avroSchema)
                   .to(outputFolder + "/" + syncInfo.getOutputFileNamePrefix() + ".avro")
                   .withoutSharding()
                   .withOutputFilenames()

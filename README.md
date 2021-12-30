@@ -2,13 +2,15 @@
 
 ## Overview
 This project has a Beam pipeline which will copy data extracted from a JDBC 
-data source into a set of BigQuery tables. It uses SAP as the source database, 
-but can support any data source which has a JDBC driver.
+data source into a set of Google Cloud Storage files in Avro format. 
+
+By default it connects a Google Cloud SQL PostgeSQL instance, 
+but any data source which has a JDBC driver can be used. JDBC connection URL is
+stored in [Secret Manager](https://cloud.google.com/secret-manager/docs) to secure
+database credentials.
 
 ## Setup
-The setup process uses Terraform to create the environment. 
-It uses [Secret Manager](https://cloud.google.com/secret-manager/docs) 
-to secure JDBC username and password.
+The setup process uses Terraform to create the environment.
 
 * Create a file with the password for the account which will be used by the piple to read the database, `data_reader.pass`
 * Create a file with the password for the `postgres` admin user, `postres.pass`
@@ -19,27 +21,24 @@ openssl rand -hex 20 > data_reader.pass &&  chmod g-r,o-r data_reader.pass
 openssl rand -hex 20 > postgres.pass &&  chmod g-r,o-r postgres.pass
 ```
 To run this tutorial you can put manually edit the password files; just make sure they don't have any extra lines and the passwords don't contain any spaces.
-* Set up environment variables, create the environment and stage the pipeline:
+* Set up environment variables:
   * `export PROJECT_ID=<Id of the Google Cloud Platform's project to deploy all artifacts>`
   * `export TF_VAR_data_reader_password=$(cat data_reader.pass)`
   * `export TF_VAR_postgres_password=$(cat postgres.pass)`
+* Create the environment (the script below runs the Terraform scripts and exports several environment variables):
   * `source ./setup-env.sh`
+* Build and deploy the pipeline's Flex template
   * `cd pipeline`
   * `./stage-dataflow-template.sh`
  
-## Create Job Extract Metadata File(s)
+## Creating Job Extract Metadata File(s)
 After `setup-env.sh` script is run it creates several GCS buckets. One of the buckets 
 (its name is stored in `METADATA_BUCKET` environment variable) needs to contain the metadata files
-used for each jobs (most of the time - table extraction). 
+used for each jobs (most of the time - table extraction). The script automatically copies all the files
+located in [jobs](jobs) directory in that bucket.
 
-For each job you plan to run create <job_name>.json file in that bucket. An example of the file:
-```json
-{
-  "lastSync": 1508000099.519089000,
-  "query": "Select col1, col2, col3 from  \"DBNAME\".\"TABLE\" where updated_ts between ? and ?"
-}
-```
-Attributes:
+If you need to add additional job extracts files - create a JSON file with .json extension 
+and the following attributes:
 * lastSync - the last time the table was synced. This attrubite will be automatically updated by 
 the pipeline after each successful data extraction.
 * query - a valid query with two positional parameters. The first parameter is the start timestamp and 
@@ -54,7 +53,9 @@ For each run you also need to set up the following variables:
     * DF_WORKER_NETWORK - name of the network
     * DF_WORKER_SUBNETWORK - name of the subnetwork in `https://www.googleapis.com/compute/v1/projects/{project_id}/regions/{region}/subnetworks/{subnetwork}` format
 
-`./run-on-dataflow.sh` will start the pipeline and print the job details. 
+`./run-latest-template.sh` will find the last deployed template and run it.
+`./run-on-dataflow.sh <template-spec-file>` can be used to run a particlar version of the template.
+
 You can monitor the progress of the pipeline in the GCP console.
 
 
