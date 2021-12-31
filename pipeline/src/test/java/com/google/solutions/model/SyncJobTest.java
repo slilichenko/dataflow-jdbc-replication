@@ -41,4 +41,13 @@ public class SyncJobTest {
 
     assertEquals("test_19700101-000000_20211208-180832", next.getOutputFileNamePrefix());
   }
+
+  @Test
+  public void testGetTransformFriendlyName() {
+    SyncJob job = new SyncJob("jobName", Instant.now(), "Select 1");
+    assertEquals("JobName", job.getTransformFriendlyName());
+
+    job = new SyncJob("order-items-sync", Instant.now(), "Select 1");
+    assertEquals("Order items", job.getTransformFriendlyName());
+  }
 }

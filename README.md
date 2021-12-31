@@ -25,7 +25,9 @@ To run this tutorial you can put manually edit the password files; just make sur
   * `export PROJECT_ID=<Id of the Google Cloud Platform's project to deploy all artifacts>`
   * `export TF_VAR_data_reader_password=$(cat data_reader.pass)`
   * `export TF_VAR_postgres_password=$(cat postgres.pass)`
-* Create the environment (the script below runs the Terraform scripts and exports several environment variables):
+* Create the environment. The script below runs the Terraform scripts, 
+ a Flyway-based process to create the database schema, and exports several 
+ environment variables:
   * `source ./setup-env.sh`
 * Build and deploy the pipeline's Flex template
   * `cd pipeline`
@@ -34,8 +36,12 @@ To run this tutorial you can put manually edit the password files; just make sur
 ## Creating Job Extract Metadata File(s)
 After `setup-env.sh` script is run it creates several GCS buckets. One of the buckets 
 (its name is stored in `METADATA_BUCKET` environment variable) needs to contain the metadata files
-used for each jobs (most of the time - table extraction). The script automatically copies all the files
-located in [jobs](jobs) directory in that bucket.
+used for each jobs (most of the time - table extraction). These files are automatically  
+updated by the pipeline to store the latest sync point.
+
+The setup script automatically copies all the files located in [jobs](jobs) directory in that bucket. 
+Notice that every time you run the this script or run `terraform apply` command the scripts in the bucket
+will be overwritten by the scripts in the jobs folder.
 
 If you need to add additional job extracts files - create a JSON file with .json extension 
 and the following attributes:
@@ -43,6 +49,13 @@ and the following attributes:
 the pipeline after each successful data extraction.
 * query - a valid query with two positional parameters. The first parameter is the start timestamp and 
 the second is the end timestamp
+
+# Run the process to continuously populate the database
+A small Java app is used to simulate the continous data updates in the Cloud SQL database.
+To run it:
+* `cd client-app`
+* `mvn package`
+* `java -jar target/client-app-0.0.1-SNAPSHOT.jar`
 
 # Run the pipeline
 Make sure that you ran `source ./setup-env.sh` - it will set up several environment variables required by the run script.
@@ -56,7 +69,7 @@ For each run you also need to set up the following variables:
 `./run-latest-template.sh` will find the last deployed template and run it.
 `./run-on-dataflow.sh <template-spec-file>` can be used to run a particlar version of the template.
 
-You can monitor the progress of the pipeline in the GCP console.
+
 
 
  

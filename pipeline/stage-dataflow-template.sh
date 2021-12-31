@@ -52,7 +52,7 @@ gcloud dataflow flex-template build ${TEMPLATE_PATH} \
   --metadata-file "./pipeline-template-metadata.json" \
   --max-workers ${MAX_WORKERS} \
   --additional-user-labels template-name=${PIPELINE_NAME},template-version=${BUILD_TAG} \
-  --additional-experiments enable_recommendations \
+  --additional-experiments enable_recommendations,enable_google_cloud_profiler,enable_google_cloud_heap_sampling \
   ${JAR_LIST} \
   --env FLEX_TEMPLATE_JAVA_MAIN_CLASS="com.google.solutions.DatabaseSyncPipeline" \
   --env FLEX_TEMPLATE_JAVA_OPTIONS="-Xmx1G"

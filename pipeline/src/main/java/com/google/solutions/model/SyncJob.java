@@ -71,6 +71,19 @@ public class SyncJob implements Serializable {
     return name;
   }
 
+  @JsonIgnore
+  public String getTransformFriendlyName() {
+    String result = name;
+    String suffix = "-sync";
+    if(result.endsWith(suffix)) {
+      result = result.substring(0, result.length() - suffix.length());
+    }
+    result = Character.toUpperCase(result.charAt(0)) + result.substring(1);
+    result = result.replace('-', ' ');
+
+    return result;
+  }
+
   public Instant getLastSync() {
     return lastSync;
   }

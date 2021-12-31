@@ -145,7 +145,7 @@ public class DatabaseSyncPipeline {
 
           Counter counter = Metrics
               .counter("table-row-retriever", "record-counter-" + syncJob.getName());
-          PCollection<Row> rows = p.apply("Query " + syncJob.getName(),
+          PCollection<Row> rows = p.apply("Query " + syncJob.getTransformFriendlyName(),
               JdbcIO.readRows()
                   .withQuery(syncJob.getQuery())
                   .withStatementPreparator((StatementPreparator) ps -> {
@@ -155,11 +155,12 @@ public class DatabaseSyncPipeline {
                   .withOutputParallelization(false)
                   .withDataSourceConfiguration(dataSourceConfiguration));
 
-          rows.apply("Get Metrics " + syncJob.getName(), MapElements.into(TypeDescriptors.voids()).via(
-              row -> {
-                counter.inc();
-                return null;
-              })).setCoder(VoidCoder.of());
+          rows.apply("Get Metrics " + syncJob.getTransformFriendlyName(),
+              MapElements.into(TypeDescriptors.voids()).via(
+                  row -> {
+                    counter.inc();
+                    return null;
+                  })).setCoder(VoidCoder.of());
 
           SyncJob updatedSyncJob = syncJob.nextSyncPoint(newSyncPoint);
           result.records.put(updatedSyncJob, rows);
@@ -193,14 +194,16 @@ public class DatabaseSyncPipeline {
         (syncInfo, rows) -> {
           org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(result.schemas.get(syncInfo));
 
+          final String syncInfoName = syncInfo.getTransformFriendlyName();
           WriteFilesResult<Void> writeFilesResult = rows
-              .apply("To GenericRecord " + syncInfo.getName(), ParDo.of(new DoFn<Row, GenericRecord>() {
-                @ProcessElement
-                public void process(@Element Row row, OutputReceiver<GenericRecord> out) {
-                  out.output(AvroUtils.toGenericRecord(row));
-                }
-              })).setCoder(AvroCoder.of(avroSchema))
-              .apply("Persist to GCS " + syncInfo.getName(), AvroIO.writeGenericRecords(avroSchema)
+              .apply("To GenericRecord " + syncInfoName,
+                  ParDo.of(new DoFn<Row, GenericRecord>() {
+                    @ProcessElement
+                    public void process(@Element Row row, OutputReceiver<GenericRecord> out) {
+                      out.output(AvroUtils.toGenericRecord(row));
+                    }
+                  })).setCoder(AvroCoder.of(avroSchema))
+              .apply("Persist to GCS " + syncInfoName, AvroIO.writeGenericRecords(avroSchema)
                   .to(outputFolder + "/" + syncInfo.getOutputFileNamePrefix() + ".avro")
                   .withoutSharding()
                   .withOutputFilenames()
@@ -208,12 +211,12 @@ public class DatabaseSyncPipeline {
 
           PCollection<KV<Void, String>> filenames = writeFilesResult
               .getPerDestinationOutputFilenames();
-          filenames.apply("Update sync data " + syncInfo.getName(),
+          filenames.apply("Update sync data " + syncInfoName,
               ParDo.of(new DoFn<KV<Void, String>, Void>() {
                 @ProcessElement
                 public void process(@Element KV<Void, String> e) {
                   LOG.info(
-                      "Finished processing extract for job " + syncInfo.getName() + ": " + e
+                      "Finished processing extract for job " + syncInfoName + ": " + e
                           .getValue());
                   byte[] content;
                   try {
